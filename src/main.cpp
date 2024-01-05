@@ -95,6 +95,12 @@ int main()
     tile.setOrigin(sf::Vector2f(step / 2.f, step / 2.f));
     tile.setFillColor(sf::Color(0, 0, 0, 220));
 
+    // Cities to mark on map
+    const LatLon cities[] = {LatLon{-33.9249, -18.4241}, LatLon{-34.6037, 58.3816}, LatLon{-33.8688, -151.2093}};
+    sf::CircleShape city(4);
+    city.setOrigin(sf::Vector2f(4, 4));
+    city.setFillColor(sf::Color(220, 30, 30));
+
     while (window.isOpen())
     {
         // Stop app if window is closed
@@ -129,7 +135,7 @@ int main()
                 const auto tile_coords = LatLon::from_azimuthal_equidistant((sf::Vector2f(x, y) - sf::Vector2f(400, 400)) / 400.f);
 
                 // Don't put the shadow if the point is outside of the map or the distance from marker is more than 1/4 of earth circumference
-                if (tile_coords.lat < -90. || point.spherical_distance(tile_coords) < 40075. / 4.)
+                if (tile_coords.lat < -90. || point.spherical_distance(tile_coords) < 10046.602125)
                 {
                     continue;
                 }
@@ -143,6 +149,13 @@ int main()
         // Put the marker showing where the sun is directly overhead
         marker.setPosition(sf::Vector2f(400, 400) + 400.f * point.to_azimuthal_equidistant());
         window.draw(marker);
+
+        // Put markers at predefined positions
+        for (const auto &city_coord : cities)
+        {
+            city.setPosition(sf::Vector2f(400, 400) + 400.f * city_coord.to_azimuthal_equidistant());
+            window.draw(city);
+        }
 
         window.display();
     }
