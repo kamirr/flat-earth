@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/home/kamil/Workspace/fe",
+    "files.associations": {
+        "condition_variable": "cpp"
+    }
+}
