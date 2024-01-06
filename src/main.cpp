@@ -89,18 +89,11 @@ int main()
     marker.setOrigin(sf::Vector2f(10, 10));
     marker.setFillColor(sf::Color(220, 220, 30));
 
-    // 1px-wide rectangle for illumination computation
-    const auto step = 1.f;
-    sf::RectangleShape tile(sf::Vector2f(step, step));
-    tile.setOrigin(sf::Vector2f(step / 2.f, step / 2.f));
-    tile.setFillColor(sf::Color(0, 0, 0, 220));
-
     // Cities to mark on map
     const LatLon cities[] = {LatLon{-33.9249, -18.4241}, LatLon{-34.6037, 58.3816}, LatLon{-33.8688, -151.2093}};
     sf::CircleShape city(4);
     city.setOrigin(sf::Vector2f(4, 4));
     city.setFillColor(sf::Color(220, 30, 30));
-
     while (window.isOpen())
     {
         // Stop app if window is closed
@@ -127,17 +120,40 @@ int main()
         }
 
         // Render illumination
+        // 1px-wide rectangle for illumination computation
+        auto step = 2.f;
+        sf::RectangleShape tile(sf::Vector2f(step, step));
+        tile.setOrigin(sf::Vector2f(step / 2.f, step / 2.f));
+
         for (float x = 0.f; x < 800.f; x += step)
         {
             for (float y = 0.f; y < 800.f; y += step)
             {
                 // LatLon coordinate of the given 1px tile
                 const auto tile_coords = LatLon::from_azimuthal_equidistant((sf::Vector2f(x, y) - sf::Vector2f(400, 400)) / 400.f);
-
-                // Don't put the shadow if the point is outside of the map or the distance from marker is more than 1/4 of earth circumference
-                if (tile_coords.lat < -90. || point.spherical_distance(tile_coords) < 10046.602125)
+                if (tile_coords.lat < -90.)
                 {
                     continue;
+                }
+
+                // Don't put the shadow if the point is outside of the map or the distance from marker is more than 1/4 of earth circumference
+                const auto earth_cicumference_km = 40075.;
+                const auto direct_illumination_cutoff = (earth_cicumference_km / 2.f) * 0.50139f;
+                const auto twilight_cutoff = direct_illumination_cutoff + earth_cicumference_km * (6. / 360.);
+
+                const auto distance = point.spherical_distance(tile_coords);
+                if (distance < direct_illumination_cutoff)
+                {
+                    continue;
+                }
+
+                if (distance > twilight_cutoff)
+                {
+                    tile.setFillColor(sf::Color(0, 0, 0, 220));
+                }
+                else
+                {
+                    tile.setFillColor(sf::Color(0, 0, 0, 110));
                 }
 
                 // reposition & draw tile
